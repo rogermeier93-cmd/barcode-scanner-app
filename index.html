@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barcode Suchscanner</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    text-align:center;
+    background:#f5f5f5;
+    margin:0;
+    padding:20px;
+}
+h1{
+    color:#333;
+}
+#reader{
+    width:100%;
+    max-width:500px;
+    margin:auto;
+}
+button{
+    padding:12px 20px;
+    margin:10px;
+    font-size:16px;
+}
+#status{
+    margin-top:20px;
+    font-size:24px;
+    font-weight:bold;
+}
+.green{
+    color:green;
+}
+.red{
+    color:red;
+}
+</style>
+</head>
+<body>
+
+<h1>Barcode Suchscanner</h1>
+
+<p>Zuerst Zielbarcode scannen</p>
+
+<div id="reader"></div>
+
+<div id="status">Bereit</div>
+
+<button onclick="resetScanner()">Neu starten</button>
+
+<script>
+let targetCode = null;
+
+function onScanSuccess(decodedText) {
+
+    if(!targetCode){
+        targetCode = decodedText;
+        document.getElementById("status").innerHTML =
+        "Suchcode gespeichert:<br>"+decodedText;
+        return;
+    }
+
+    if(decodedText === targetCode){
+        document.body.style.backgroundColor="#b6ffb6";
+        document.getElementById("status").className="green";
+        document.getElementById("status").innerHTML="✅ TREFFER<br>"+decodedText;
+
+        if(navigator.vibrate){
+            navigator.vibrate([200,100,200]);
+        }
+
+    }else{
+        document.body.style.backgroundColor="#ffb6b6";
+        document.getElementById("status").className="red";
+        document.getElementById("status").innerHTML="❌ FALSCH<br>"+decodedText;
+
+        if(navigator.vibrate){
+            navigator.vibrate(400);
+        }
+    }
+
+    setTimeout(()=>{
+        document.body.style.backgroundColor="#f5f5f5";
+    },1500);
+}
+
+function resetScanner(){
+    targetCode=null;
+    document.getElementById("status").innerHTML="Bereit";
+    document.body.style.backgroundColor="#f5f5f5";
+}
+
+const html5QrCode = new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(devices => {
+    if(devices && devices.length){
+        html5QrCode.start(
+            { facingMode: "environment" },
+            {
+                fps:10,
+                qrbox:250
+            },
+            onScanSuccess
+        );
+    }
+});
+</script>
+
+</body>
+</html>
